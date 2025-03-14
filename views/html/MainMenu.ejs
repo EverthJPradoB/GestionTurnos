@@ -1,0 +1,88 @@
+<div class="br-logo">
+    <a href="../UsuHome/"><span>[</span>Empresa<span>]</span></a>
+</div>
+
+<div class="br-sideleft overflow-y-auto">
+    <label class="sidebar-label pd-x-15 mg-t-20">Menu</label>
+    <div class="br-sideleft-menu">
+
+        <% if (id_rol == 2) { %>
+            <a href="/Recpcionista/UsuHome/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-24"></i>
+                    <span class="menu-item-label">Usu Home</span>
+                </div>
+            </a>
+
+            <a href="/Recpcionista/GstTurnos/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-24"></i>
+                    <span class="menu-item-label">Gestion de Turnos</span>
+                </div>
+            </a>
+        <% } %>
+
+        <% if (id_rol == 3) { %>
+            <a href="/Encargado/UsuHome/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-24"></i>
+                    <span class="menu-item-label">Usu Home</span>
+                </div>
+            </a>
+
+            <!-- <a href="/Recpcionista/GstTurnos/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-24"></i>
+                    <span class="menu-item-label">Gestion de Turnos</span>
+                </div>
+            </a> -->
+        <% } %>
+
+        <% if (id_rol == 4) { %>
+            <a href="/Admin/UsuHomeAministrador/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-24"></i>
+                    <span class="menu-item-label">Usu Home Admi</span>
+                </div>
+            </a>
+
+            <a href="/Admin/MntUsuario/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-22"></i>
+                    <span class="menu-item-label">Mnt Usuarios</span>
+                </div>
+            </a>
+
+            <a href="/Admin/MntVentanilla/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-22"></i>
+                    <span class="menu-item-label">Mnt Ventanilla</span>
+                </div>
+            </a>
+
+            <a href="/Admin/MntTramite/" class="br-menu-link">
+                <div class="br-menu-item">
+                    <i class="menu-item-icon icon tx-22"></i>
+                    <span class="menu-item-label">Mnt Tramites</span>
+                </div>
+            </a>
+        <% } %>
+
+        <% if (id_rol == 2 || id_rol == 3 || id_rol == 4) { %>
+
+        <a href="/UsuPerfil/" class="br-menu-link">
+            <div class="br-menu-item">
+                <i class="menu-item-icon icon tx-20"></i>
+                <span class="menu-item-label">Perfil</span>
+            </div>
+        </a>
+
+        <a href="/usuario/logout" class="br-menu-link">
+            <div class="br-menu-item">
+                <i class="menu-item-icon icon tx-20"></i>
+                <span class="menu-item-label">Cerrar Sesion</span>
+            </div>
+        </a>
+        <% } %>
+    </div>
+</div>

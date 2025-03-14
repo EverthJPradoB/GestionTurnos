@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Twitter -->
+  <meta name="twitter:site" content="@themepixels">
+  <meta name="twitter:creator" content="@themepixels">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bracket">
+  <meta name="twitter:description" content="Premium Quality and Responsive UI for Dashboard.">
+  <meta name="twitter:image" content="http://themepixels.me/bracket/img/bracket-social.png">
+
+  <!-- Facebook -->
+  <meta property="og:url" content="http://themepixels.me/bracket">
+  <meta property="og:title" content="Bracket">
+  <meta property="og:description" content="Premium Quality and Responsive UI for Dashboard.">
+
+  <meta property="og:image" content="http://themepixels.me/bracket/img/bracket-social.png">
+  <meta property="og:image:secure_url" content="http://themepixels.me/bracket/img/bracket-social.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="600">
+
+  <!-- Meta -->
+  <meta name="description" content="Premium Quality and Responsive UI for Dashboard.">
+  <meta name="author" content="ThemePixels">
+
+  <title>EMPRESA::Acceso</title>
+
+  <!-- vendor css -->
+  <link href="/lib/font-awesome/css/font-awesome.css" rel="stylesheet">
+  <link href="/lib/Ionicons/css/ionicons.css" rel="stylesheet">
+
+  <!-- Bracket CSS -->
+  <link rel="stylesheet" href="/css/bracket.css">
+</head>
+
+<body>
+
+  <div class="d-flex align-items-center justify-content-center bg-br-primary ht-100v">
+
+    <div class="login-wrapper wd-300 wd-xs-350 pd-25 pd-xs-40 bg-white rounded shadow-base">
+
+      <div style="text-align: center; padding: 20px;">
+        <img src="/images/logo.png" alt="Logo Municipalidad" style="max-width: 150px; margin-bottom: 10px;">
+        <h3 style="font-family: 'Arial', sans-serif; font-weight: bold; color: #333; margin: 10px 0;">
+          Sistemas de Colas - MDLV
+        </h3>
+      </div>
+
+      <div id="errorMessage" class="alert text-center" role="alert"
+        style="margin-bottom: 15px; font-size: 14px; display: none;">
+      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <input type="text" class="form-control" id="username_" name="username_"
+            placeholder="Ingrese Correo Electrónico">
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control" id="password_" name="password_" placeholder="Ingrese Contraseña">
+        </div>
+
+        <button type="submit" class="btn btn-info btn-block">Acceder</button>
+      </form>
+
+
+    </div>
+
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/popper.js/popper.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+
+  <script>
+
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const username = document.getElementById("username_").value;
+      const password = document.getElementById("password_").value;
+      const errorMessage = document.getElementById("errorMessage");
+
+      try {
+        const response = await fetch("/usuario/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = data.redirectUrl;
+        } else {
+          errorMessage.innerText = data.mensaje;
+          errorMessage.className = `alert alert-${data.tipoAlerta} text-center`;
+          errorMessage.style.display = "block"; // Mostrar el mensaje
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        errorMessage.innerText = "Error en el servidor";
+        errorMessage.className = "alert alert-danger text-center";
+        errorMessage.style.display = "block"; // Mostrar el mensaje
+      }
+    });
+
+
+  </script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Ingrese su usuario" >
+        <input type="password" id="password" placeholder="Ingrese su contraseña" >
+        <button type="submit">Acceder</button>
+    </form>
+    <p id="errorMessage" class="error-message"></p> 
+
+ 
+</body>
+
+</html> -->

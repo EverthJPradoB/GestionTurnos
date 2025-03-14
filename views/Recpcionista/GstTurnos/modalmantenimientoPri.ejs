@@ -1,0 +1,49 @@
+<div id="modalmantenimiento" class="modal fade" data-backdrop="static" data-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content bd-0">
+            <div class="modal-header pd-y-20 pd-x-25">
+                <h6 id="lbltitulo" class="tx-40 mg-b-0 tx-uppercase tx-inverse tx-bold">Priorización</h6>
+            </div>
+            <!-- Formulario Mantenimiento -->
+            <form method="post" id="pri_form" data-parsley-validate>
+
+        
+
+                <div class="modal-body">
+      
+                    <input type="hidden" id="id_turno" name="id_turno" value="">
+                    <!-- Espaciado para el formulario -->
+                    <div class="row">
+                        <!-- Combo Box 1 -->
+                        <div class="col-md-12 mb-4"> <!-- Aumentar el margen inferior para separación -->
+                            <div id="id_pri" style="font-size: 1.5rem;">
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 mb-4" id="motivo-otro" style="display:none; ">
+                            <label for="motivo" class="tx-20">Escriba el motivo:</label>
+                            <textarea class="form-control tx-20" id="motivo" name="motivo" rows="4" style="width:100%;"
+                                placeholder="Escriba aquí..."></textarea>
+                        </div>
+                        <!-- Más campos -->
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+
+
+                    <button type="reset"
+                        class="btn btn-outline-secondary tx-11 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium"
+                        aria-label="Close" aria-hidden="true" data-dismiss="modal"><i class="fa fa-close"></i>
+                        Cancelar</button>
+                    <button type="submit" name="action" value="add"
+                        class="btn btn-outline-primary tx-14 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium"><i
+                            class="fa fa-check"></i> Priorizar</button>
+
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

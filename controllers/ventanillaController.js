@@ -15,7 +15,11 @@ class VentanillaController {
                 ...row,
                 tra_nom: row.tra_nom ? row.tra_nom : "<b>No tiene Tramite</b>",
                 editar: `<button type="button" onClick="editar(${row.id_venta});" id="${row.id_venta}" class="btn btn-outline-warning btn-icon"><div><i class="fa fa-edit"></i></div></button>`,
-                eliminar: `<button type="button" onClick="eliminar(${row.id_venta});" id="${row.id_venta}" class="btn btn-outline-danger btn-icon"><div><i class="fa fa-close"></i></div></button>`
+                eliminar: `<button type="button" onClick="eliminar(${row.id_venta});" id="${row.id_venta}" class="btn btn-outline-danger btn-icon"><div><i class="fa fa-close"></i></div></button>`,
+                desvincular: `<button type="button" onClick="desvincular(${row.id_venta});" id="${row.id_venta}" class="btn btn-outline-secondary btn-icon"><div><i class="fa fa-unlink"></i></div></button>`,
+
+            
+            
             }));
 
 
@@ -48,15 +52,12 @@ class VentanillaController {
 
 
         let connection;
-        console.log("1 " + id_ventaFinal);
+        console.log(" ... " + id_venta);
+        console.log(" ... " + id_ventaFinal);
 
         if (id_ventaFinal) {
 
             try {
-
-
-                console.log("2_: " + id_ventaFinal);
-
 
                 connection = await pool.getConnection(); // Obtener conexión del pool
 
@@ -68,16 +69,25 @@ class VentanillaController {
                 await Ventanilla.update_ventanilla(venta_nomFinal, venta_descripFinal, id_ventaFinal
                 );
 
-                let cantidad_tramites = await Ventanilla.verificar_tramite_ventanilla(id_ventaFinal);
+                let verificar = await Ventanilla.verificar_tramite_ventanilla(id_ventaFinal);
 
-                console.log(cantidad_tramites);
-
-
-
-                if (cantidad_tramites) {
+                let cantidad_tramites = verificar.count;
+                let id_tramite_actual = verificar.id_tra;
 
 
-                    await Ventanilla.update_tramite(id_traFinal, id_ventaFinal);
+                if (cantidad_tramites > 0) {
+
+
+                    if (id_tramite_actual != id_traFinal ) {
+
+                        await Ventanilla.desvincular_tramite(id_ventaFinal);
+
+                        await Ventanilla.asociar_ventanilla_tramite(id_ventaFinal, id_traFinal);
+
+                    }
+
+
+                    // await Ventanilla.update_tramite(id_traFinal, id_ventaFinal);
 
                 } else {
 
@@ -86,8 +96,6 @@ class VentanillaController {
                 }
 
 
-
-                console.log("Ventanilla Actualizada exitosamente:");
 
                 await connection.query('COMMIT'); // Confirmar transacción
                 res.status(200).json({ success: true, message: 'Ventanilla Modificada exitosamente' });
@@ -183,6 +191,22 @@ class VentanillaController {
 
     }
 
+
+    static async desvincular_tramite_vetanilla(req, res) {
+
+        try {
+
+            const id_per = req.body.id_venta;
+            await Ventanilla.desvincular_tramite(id_per);
+
+            res.status(200).json({ success: true, message: 'El tramite a sido desvinculada' });
+
+        } catch (error) {
+            res.status(500).json({ message: "Error interno del servidor" });
+        }
+
+    }
+
     static async eliminar_ventanilla(req, res) {
 
         try {
@@ -197,6 +221,10 @@ class VentanillaController {
         }
 
     }
+
+
+
+
 
 
 

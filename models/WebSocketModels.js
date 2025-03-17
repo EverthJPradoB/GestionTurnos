@@ -94,7 +94,7 @@ class WebSocketModels {
                 LEFT JOIN bd_gestion_turnos.tm_tramite t ON tv.id_tra = t.id_tra
                 LEFT JOIN bd_gestion_turnos.tm_turno tu ON tu.id_tra = t.id_tra
                     AND tu.id_est_turn IN (2, 1) -- Solo turnos pendientes y en atención
-                LEFT JOIN bd_gestion_turnos.tm_estado_turno e ON e.id_est_turn = tu.id_est_turn
+  
                 WHERE 
                     v.venta_estado = 1 
                     AND t.tra_estado = 1   
@@ -103,9 +103,8 @@ class WebSocketModels {
             ) AS subquery
             WHERE row_num <= 3 OR row_num IS NULL 
 
-
         `;
-
+              /*LEFT JOIN bd_gestion_turnos.tm_estado_turno e ON e.id_est_turn = tu.id_est_turn*/
         const turnos = await query(sql);
 
         return turnos;
@@ -296,12 +295,31 @@ class WebSocketModels {
     }
 
 
-    static async datos_estaditicos_finalizados_cacencelado_anulados(id_rol, id_venta) {
+    static async get_ventanilla_tramite_kiosko() {
+        const sql = `
+      SELECT  v.id_venta  ,v.venta_nom  FROM  
+            bd_gestion_turnos.tm_tramite t 
+            INNER JOIN  bd_gestion_turnos.tm_tramite_ventanilla tv ON t.id_tra = tv.id_tra
+            INNER JOIN  bd_gestion_turnos.tm_ventanilla v ON v.id_venta = tv.id_venta
+            INNER JOIN bd_gestion_turnos.tm_persona_ventanilla pv ON pv.id_venta = v.id_venta
+            WHERE tv.tra_venta_estado = 1 AND t.tra_estado = 1 AND v.venta_estado = 1 
+            AND pv.per_venta_estado = 1
+            
+        `;
+
+        const ventanilla_tramite_kiosko = await query(sql);
+
+        // Retorna el ID de la ventanilla o null si no hay resultado
+        return ventanilla_tramite_kiosko;
+    }
+
+
+    static async datos_estaditicos_finalizados_cancelados_ausentes(id_rol, id_venta) {
             const sql = `
                 SELECT 
                     COALESCE(SUM(CASE WHEN tu.id_est_turn = 3 THEN 1 ELSE 0 END), 0) AS finalizados,
                     COALESCE(SUM(CASE WHEN tu.id_est_turn = 4 THEN 1 ELSE 0 END), 0) AS cancelados,
-                    COALESCE(SUM(CASE WHEN tu.id_est_turn = 5 THEN 1 ELSE 0 END), 0) AS anulados
+                    COALESCE(SUM(CASE WHEN tu.id_est_turn = 5 THEN 1 ELSE 0 END), 0) AS ausentes
                 FROM tm_turno tu  
                 INNER JOIN bd_gestion_turnos.tm_estado_turno e ON e.id_est_turn = tu.id_est_turn
                 INNER JOIN bd_gestion_turnos.tm_tramite t ON tu.id_tra = t.id_tra
@@ -317,7 +335,7 @@ class WebSocketModels {
 
         const resultado = await query(sql, [id_rol, id_venta]);
 
-        return resultado[0] ?? { finalizados: 0, cancelados: 0, anulados: 0 };
+        return resultado[0] ?? { finalizados: 0, cancelados: 0, ausentes: 0 };
 
     }
 

@@ -1,77 +1,59 @@
+let socket;
 
+function conectarWebSocket() {
+    if (socket && socket.readyState !== WebSocket.CLOSED) {
+        console.log("⚡ WebSocket ya está conectado.");
+        return;
+    }
 
-fetch("/usuario/session_rol") // Llama al backend para obtener el id_venta
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            console.error("Error:", data.error);
-            return;
-        }
-
-
-        const ip = "localhost";
-        const ws = new WebSocket(`ws://${ip}:3000`);
-
-
-        ws.onopen = () => {
-
-            ws.send(JSON.stringify({ action: "DATOS_ESTADISTICOS_CARDS",id_rol: data.id_rol }));
-
-        
-        };
-
-        ws.onmessage = (event) => {
-
-
-            const data = JSON.parse(event.data);
-
-            if (data.action === "DATOS_ESTADISTICOS_CARDS") {
-
-                const estad = data.datos_estadisticos;
-                console.log(estad);
-                
-                $("#finalizados").text(estad.finalizados)
-                $("#cancelados").text(estad.cancelados)
-                $("#anulados").text(estad.anulados)
+    fetch("/usuario/session_rol") // Obtiene id_per desde el backend
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error("Error:", data.error);
+                return;
             }
 
-            if (data.action === "LISTA_TURNOS_VENTANILLA") {
+            const ip = "localhost";
+            socket = new WebSocket(`ws://${ip}:3000?id_per=${data.id_per}`);
 
-                id_turn = data.id_turn;
+            socket.onopen = () => {
+                // console.log("✅ WebSocket conectado");
+                socket.send(JSON.stringify({ action: "REGISTRAR", id_per: data.id_per }));
+                socket.send(JSON.stringify({ action: "DATOS_ESTADISTICOS_CARDS", id_rol: data.id_rol }));
+            };
 
-                let turnos = data.turnos_ventanilla;
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                console.log("📩 Mensaje recibido:", message);
 
-                //let turnoEnAtencion = turnos.find(turno => turno.id_est_turn == 2);
-                turnoActual = turnos.find(turno => turno.id_est_turn == 2);
-                if (turnoActual) {
-                    validarActualBandera = true;
-                    actualizarInterfaz(turnoActual);
-                    $("#btnLlamarTurno").prop("disabled", false);
-                    $("#btnFinalizarTurno").prop("disabled", false);
-                    $("#btnCancelarTurno").prop("disabled", false);
-                    $("#btnAnularTurno").prop("disabled", false);
-
+                if (message.action === "DATOS_ESTADISTICOS_CARDS") {
+                    $("#finalizados").text(message.datos_estadisticos.finalizados);
+                    $("#cancelados").text(message.datos_estadisticos.cancelados);
+                    $("#ausentes").text(message.datos_estadisticos.ausentes);
                 }
 
-                $("#turno_espera").text(data.pendientes);
-
-                if (id_turn) {
-                    removerTurno(id_turn);
+                if (message.action === "DATOS_ESTADISTICOS_ACTUALIZAR") {
+                    let can = 0;
+                    if (message.finalizado) {
+                        can = $("#finalizados").text();
+                        $("#finalizados").text(Number(can) + Number(message.finalizado));
+                    } else if (message.cancelado) {
+                        can = $("#cancelados").text();
+                        $("#cancelados").text(Number(can) + Number(message.cancelado));
+                    } else if (message.ausente) {
+                        can = $("#ausentes").text();
+                        $("#ausentes").text(Number(can) + Number(message.ausente));
+                    }
                 }
+            };
 
-            }
+            socket.onclose = () => {
+                console.log("❌ WebSocket cerrado");
+            };
+        })
+        .catch(error => console.error("Error obteniendo sesión:", error));
+}
 
-        };
-
-
-
-        
-        
-    
-
-
-
-    })
-    .catch(error => console.error("Error obteniendo sesión:", error));
-
-
+// 📌 Ejecuta la conexión WebSocket en cada vista
+document.addEventListener("DOMContentLoaded", conectarWebSocket);

@@ -19,8 +19,6 @@ $(document).ready(function () {
             url: "/ventanilla/listar_ventanilla_activas",
             type: "post",
             dataSrc: function (json) {
-                console.log(json);
-
 
                 return json.data ?? []; // Asegurar que siempre sea un array
             }
@@ -37,7 +35,8 @@ $(document).ready(function () {
             { "data": "venta_descrip" },
             { "data": "tra_nom" },
             { "data": "editar" },
-            { "data": "eliminar" }
+            { "data": "eliminar" },
+            { "data": "desvincular" }
 
         ],
         "language": {
@@ -86,11 +85,6 @@ function editar(id_venta) {
         { id_venta: id_venta },
         function (data) {
 
-            console.log(data);
-
-
-
-
             $('#id_venta').val(data.id_venta);
             $('#venta_nom').val(data.venta_nom);
 
@@ -118,9 +112,9 @@ function guardaryeditar(e) {
 
 
     // Recorre y muestra los valores en la consola
-    formData.forEach((value, key) => {
-        console.log(key + ": " + value);
-    });
+    // formData.forEach((value, key) => {
+    //     console.log(key + ": " + value);
+    // });
 
     $.ajax({
         url: "/ventanilla/registrarVentanillas",
@@ -204,6 +198,50 @@ function eliminar(id_venta) {
         }
     });
 }
+
+
+
+
+
+function desvincular(id_venta) {
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desvinculara el tramite",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desvincular",
+        cancelButtonText: "Cancelar"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post("/ventanilla/desvincularTramite",
+                { id_venta: id_venta },
+                function (data) {
+                
+                    if (data.success === true) {
+
+                        $('#ventanilla_data').DataTable().ajax.reload();
+
+                        Swal.fire({
+                            title: "Correcto!",
+                            text: data.message,
+                            icon: "success",
+                            confirmButtonText: "Aceptar"
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message,
+                            icon: "error",
+                            confirmButtonText: "Aceptar"
+                        });
+                    }
+ 
+                }
+            );
+        }
+    });
+}
+
 
 function combo_tramite(id_venta) {
     $.post("/ventanilla/combo_tramites", { id_venta: id_venta }, function (data) {

@@ -39,7 +39,9 @@ $(document).ready(function () {
             { "data": "rol_nom" },
             { "data": "venta_nom" },
             { "data": "editar" },
-            { "data": "eliminar" }
+            { "data": "eliminar" },
+            { "data": "desvincular" }
+
         ],
         "language": {
             "sProcessing": "Procesando...",
@@ -84,9 +86,10 @@ function init() {
 function guardaryeditar(e) {
     e.preventDefault();
     var formData = new FormData($("#per_form")[0]);
-    for (var pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-    }
+    // for (var pair of formData.entries()) {
+    //     console.log(pair[0] + ': ' + pair[1]);
+    // }
+    $('#id_rol').prop('disabled', false);
     // Aquí, enviamos formData directamente
     $.ajax({
         url: "/usuario/registrarPersonas",
@@ -96,13 +99,17 @@ function guardaryeditar(e) {
         processData: false, // No procesar los datos
         success: function (response) {
             let data = response;
-
-            console.log(data);
             
             if (data.success === true) {
-                console.log(1);
+         
                 $('#usuario_data').DataTable().ajax.reload();
                 $('#modalmantenimiento').modal('hide');
+
+                let form = $('#per_form');
+                form.find('.form-control').removeClass('is-valid is-invalid'); // Quita bordes de validación
+                form.find('.parsley-errors-list').remove(); // Elimina mensajes de error de Parsley
+                form.parsley().reset(); // Reinicia Parsley
+    
 
                 Swal.fire({
                     title: "Correcto!",
@@ -149,7 +156,6 @@ function nuevo() {
 }
 
 function combo_rol(id_rol) {
-    console.log("ID Rol enviado:", id_rol); // Verifica que el dato sea correcto
 
     $.post("/usuario/combo_roles", { id_rol: id_rol }, function (data) {
 
@@ -175,8 +181,7 @@ function editar(id_per) {
         { id_per: id_per },
         function (data) {
 
-            console.log(data);
-            
+        
             // data = JSON.parse(data);
 
             $('#id_per').val(data.id_per);
@@ -185,13 +190,22 @@ function editar(id_per) {
             $('#per_ape_ma').val(data.per_ape_ma);
             $('#per_correo').val(data.per_correo);
             $('#per_telef').val(data.per_telef);
-            $('#id_per').val(data.id_per);
 
-
-            console.log(data.id_rol);
             
             combo_rol(data.id_rol)
-            $('#id_rol').prop('disabled', true);
+            $('#id_rol').prop('disabled', true);0
+
+            if (data.id_rol == 3) {
+                $('#id_venta').prop('disabled', true);
+            }
+            
+            let form = $('#per_form');
+            form.find('.form-control').removeClass('is-valid is-invalid'); // Quita bordes de validación
+            form.find('.parsley-errors-list').remove(); // Elimina mensajes de error de Parsley
+            form.parsley().reset(); // Reinicia Parsley
+
+
+
             $('#lbltitulo').html('Editar Registro');
             $('#modalmantenimiento').modal('show');
             combo_ventanilla(id_per);
@@ -239,6 +253,46 @@ function eliminar(id_per) {
                 
                 
                 
+                }
+            );
+        }
+    });
+}
+
+
+function desvincular(id_per) {
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción desvinculara la ventanilla",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desvincular",
+        cancelButtonText: "Cancelar"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post("/usuario/eliminarVentanilla",
+                { id_per: id_per },
+                function (data) {
+                
+                    if (data.success === true) {
+
+                        $('#usuario_data').DataTable().ajax.reload();
+
+                        Swal.fire({
+                            title: "Correcto!",
+                            text: data.message,
+                            icon: "success",
+                            confirmButtonText: "Aceptar"
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.message,
+                            icon: "error",
+                            confirmButtonText: "Aceptar"
+                        });
+                    }
+ 
                 }
             );
         }

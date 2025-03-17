@@ -27,6 +27,7 @@ $(document).ready(function () {
         "columns": [
             { "data": "tra_nom" },
             { "data": "tra_descrip" },
+            { "data": "tra_tiem_esti" },
             { "data": "editar" },
             { "data": "eliminar" }
 
@@ -81,6 +82,13 @@ function editar(id_tra) {
             $('#id_tra').val(data.id_tra);
             $('#tra_nom').val(data.tra_nom);
             $('#tra_descrip').val(data.tra_descrip);
+            $('#tra_tiem_esti').val(data.tra_tiem_esti);
+
+            // Restablecer los estilos de validación de Bootstrap y Parsley
+            let form = $('#tra_form');
+            form.find('.form-control').removeClass('is-valid is-invalid'); // Quita bordes de validación
+            form.find('.parsley-errors-list').remove(); // Elimina mensajes de error de Parsley
+            form.parsley().reset(); // Reinicia Parsley
 
             $('#lbltitulo').html('Editar Registro');
             $('#modalmantenimiento').modal('show');
@@ -92,6 +100,11 @@ function editar(id_tra) {
 function init() {
     $("#tra_form").on("submit", function (e) {
         guardaryeditar(e);
+
+
+     
+
+
     });
 }
 
@@ -114,6 +127,11 @@ function guardaryeditar(e) {
                 $('#tramite_data').DataTable().ajax.reload();
                 $('#modalmantenimiento').modal('hide');
 
+
+                let form = $('#tra_form');
+                form.find('.form-control').removeClass('is-valid is-invalid'); // Quita bordes de validación
+                form.find('.parsley-errors-list').remove(); // Elimina mensajes de error de Parsley
+                form.parsley().reset(); // Reinicia Parsley
 
                 Swal.fire({
                     title: "Correcto!",
@@ -161,7 +179,7 @@ function eliminar(id_tra) {
                     if (data.success === true) {
 
                         $('#tramite_data').DataTable().ajax.reload();
-     
+
 
                         Swal.fire({
                             title: "Correcto!",

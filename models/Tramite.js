@@ -15,11 +15,11 @@ class Tramite {
         return resultado;
     }
 
-    static async insert_tramites(tra_nom, tra_descrip) {
+    static async insert_tramites(tra_nom, tra_descrip, tra_tiem_esti) {
         const sql = `
-       INSERT INTO bd_gestion_turnos.tm_tramite (tra_nom, tra_descrip) VALUES (?, ?)
+       INSERT INTO bd_gestion_turnos.tm_tramite (tra_nom, tra_descrip , tra_tiem_esti ) VALUES (?, ?, ?)
             `;
-        await query(sql, [tra_nom, tra_descrip]);
+        await query(sql, [tra_nom, tra_descrip , tra_tiem_esti]);
     }
 
 
@@ -32,13 +32,13 @@ class Tramite {
         return resultado[0];
     }
 
-    static async update_tramites(tra_nom, tra_descrip, id_tra)
+    static async update_tramites(tra_nom, tra_descrip, tra_tiem_esti, id_tra)
     {
 
         const sql = `
-        UPDATE bd_gestion_turnos.tm_tramite SET tra_nom = ?, tra_descrip = ? WHERE id_tra = ?
+        UPDATE bd_gestion_turnos.tm_tramite SET tra_nom = ?, tra_descrip = ? , tra_tiem_esti = ? WHERE id_tra = ?
             `;
-        await query(sql, [tra_nom, tra_descrip,id_tra]);
+        await query(sql, [tra_nom, tra_descrip, tra_tiem_esti , id_tra]);
     }
 
 

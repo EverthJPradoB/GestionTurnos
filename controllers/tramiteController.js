@@ -6,11 +6,12 @@ class TramiteController {
 
     static async guardaryeditar(req, res) {
 
-        const { id_tra, tra_nom, tra_descrip } = req.body;
+        const { id_tra, tra_nom, tra_descrip, tra_tiem_esti } = req.body;
 
         const id_traFinal = id_tra || null;
         const tra_nomFinal = tra_nom || null;
         const tra_descripFinal = tra_descrip || null;
+        const tra_tiem_estiFinal = tra_tiem_esti || null;
 
         if (!tra_nomFinal) {
             return res.status(400).json({ status: "error", message: "Complete los campos obligatorios" });
@@ -19,7 +20,7 @@ class TramiteController {
         if (id_traFinal) {
 
             try {
-                await Tramite.update_tramites(tra_nomFinal, tra_descripFinal, id_traFinal);
+                await Tramite.update_tramites(tra_nomFinal, tra_descripFinal,tra_tiem_estiFinal, id_traFinal);
                 res.status(200).json({ success: true, message: 'Tramite registrado exitosamente' });
             } catch (error) {
                 console.error("Error en update_tramites:", error);
@@ -29,14 +30,15 @@ class TramiteController {
         } else {
 
             try {
-                await Tramite.insert_tramites(tra_nomFinal, tra_descripFinal);
 
+                await Tramite.insert_tramites(tra_nomFinal, tra_descripFinal , tra_tiem_estiFinal );
                 res.status(200).json({ success: true, message: 'Tramite registrado exitosamente' });
 
-
             } catch (error) {
+
                 console.error("Error en insert_tramites:", error);
                 res.status(500).json({ success: false, message: 'Error al registrar Tramite' });
+
             }
         }
     }

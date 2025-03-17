@@ -2,9 +2,8 @@ const express = require("express");
 const session = require("express-session");
 const path = require("path");
 const http = require("http"); // 📌 Faltaba importar esto
-const WebSocket = require("ws");
 
-const setupWebSocket = require("./config/websocket"); // Importar el WebSocket
+const  { setupWebSocket, clients ,enviarMensajeWebSocket}  = require("./config/websocket"); // Importar el WebSocket
 
 
 const app = express();
@@ -84,8 +83,8 @@ app.get("/UsuPerfil/", (req, res, next) => {
 });
 
 // Rutas de vistas ADMIN
-app.get("/Admin/UsuHomeAministrador", (req, res) => {
-  res.render("Admin/UsuHomeAministrador/index", { 
+app.get("/Admin/UsuHome", (req, res) => {
+  res.render("Admin/UsuHome/index", { 
     id_rol: req.session.id_rol, 
     id_cred: req.session.id_cred,
     per_nom: req.session.per_nom,
@@ -221,9 +220,26 @@ app.use("/kiosko", kioskoRoutes);
 
 
 // Página de error 404
+// app.use((req, res) => {
+//   res.status(404).sendFile(path.join(__dirname, "views", "viewError", "error.html"));
+// });
+
+
+
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "views", "viewError", "error.html"));
+    if (req.session.id_rol == 2) {
+        // Usuario autenticado, redirigir a UsuHome
+        res.redirect("/Recpcionista/UsuHome");
+    } else if (req.session.id_rol == 3) {
+      res.redirect("/Encargado/UsuHome");
+    } else if (req.session.id_rol == 4) {
+      res.redirect("/Admin/UsuHome");
+    }else {
+        // Usuario NO autenticado, redirigir al login
+        res.redirect("/");
+    }
 });
+
 
 // 📌 Levantar el servidor correctamente con WebSockets
 const PORT = process.env.PORT || 3000;

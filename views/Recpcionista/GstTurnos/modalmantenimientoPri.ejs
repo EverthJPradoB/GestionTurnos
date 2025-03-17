@@ -1,49 +1,51 @@
 <div id="modalmantenimiento" class="modal fade" data-backdrop="static" data-keyboard="false" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content bd-0">
-            <div class="modal-header pd-y-20 pd-x-25">
-                <h6 id="lbltitulo" class="tx-40 mg-b-0 tx-uppercase tx-inverse tx-bold">Priorización</h6>
+        <div class="modal-content bd-0 shadow-lg" style="border-radius: 10px; overflow: hidden;">
+            <!-- Encabezado mejorado -->
+            <div class="modal-header pd-y-20 pd-x-25 bg-primary text-white d-flex align-items-center">
+                <h6 id="lbltitulo" class="tx-30 mg-b-0 tx-uppercase tx-bold">Priorización</h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <!-- Formulario Mantenimiento -->
+
+            <!-- Formulario -->
             <form method="post" id="pri_form" data-parsley-validate>
-
-        
-
-                <div class="modal-body">
-      
+                <div class="modal-body pd-25">
                     <input type="hidden" id="id_turno" name="id_turno" value="">
-                    <!-- Espaciado para el formulario -->
-                    <div class="row">
-                        <!-- Combo Box 1 -->
-                        <div class="col-md-12 mb-4"> <!-- Aumentar el margen inferior para separación -->
-                            <div id="id_pri" style="font-size: 1.5rem;">
 
+                    <!-- Contenido del formulario -->
+                    <div class="row">
+                        <!-- Campo de prioridad -->
+                        <div class="col-md-12 mb-4">
+                            <div id="id_pri" class="alert alert-info tx-18 p-3" style="font-size: 1.5rem; color: #155724; background-color: #d4edda; border-color: #c3e6cb;">
+                                <!-- Contenido dinámico -->
                             </div>
                         </div>
 
-                        <div class="col-md-12 mb-4" id="motivo-otro" style="display:none; ">
-                            <label for="motivo" class="tx-20">Escriba el motivo:</label>
-                            <textarea class="form-control tx-20" id="motivo" name="motivo" rows="4" style="width:100%;"
-                                placeholder="Escriba aquí..."></textarea>
-                        </div>
-                        <!-- Más campos -->
+                        <!-- Campo de motivo (oculto por defecto) -->
+                        <!-- <div class="col-md-12 mb-4" id="motivo-otro" style="display: none;">
+                            <label for="motivo" class="tx-20 font-weight-bold">Escriba el motivo:</label>
+                            <textarea class="form-control tx-20" id="motivo" name="motivo" rows="4" 
+                                placeholder="Escriba aquí..." style="resize: vertical; border-radius: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);"></textarea>
+                        </div> -->
                     </div>
                 </div>
 
-                <div class="modal-footer">
-
-
-                    <button type="reset"
-                        class="btn btn-outline-secondary tx-11 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium"
-                        aria-label="Close" aria-hidden="true" data-dismiss="modal"><i class="fa fa-close"></i>
-                        Cancelar</button>
-                    <button type="submit" name="action" value="add"
-                        class="btn btn-outline-primary tx-14 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium"><i
-                            class="fa fa-check"></i> Priorizar</button>
-
-
+                <!-- Pie del modal mejorado -->
+                <div class="modal-footer bg-light justify-content-end">
+                    <button type="reset" class="btn btn-outline-secondary tx-13 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium mr-2" 
+                        data-dismiss="modal" aria-label="Close">
+                        <i class="fa fa-times mr-1"></i> Cancelar
+                    </button>
+                    <button type="submit" name="action" value="add" 
+                        class="btn btn-primary tx-13 tx-uppercase pd-y-12 pd-x-25 tx-mont tx-medium">
+                        <i class="fa fa-check mr-1"></i> Priorizar
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Opcional: CSS adicional -->

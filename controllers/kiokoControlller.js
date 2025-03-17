@@ -1,16 +1,16 @@
 const Kiosko = require('../models/Kiosko');
 const { pool } = require('../config/conexion');
-const WebSocket = require("ws");
 
+const  { setupWebSocket, clients ,enviarMensajeWebSocket}  = require("../config/websocket"); 
 class KioskoController {
     
     static async listar_ventanillas_tramites(req, res) {
 
         try {
+
             const tramites_ventanillas = await Kiosko.get_ventanilla_tramite_kiosko();
 
             res.status(200).json(tramites_ventanillas);
-
   
         } catch (error) {
             console.error("Error al obtener personas:", error);
@@ -60,34 +60,15 @@ class KioskoController {
             resultado.tra_descrip = tra_descrip;
 
 
+    
             if (resultado) {
-                try {
-
-                    const ip = "localhost";
-                    const ws = new WebSocket(`ws://${ip}:3000`);
-             
-                    ws.on("open", () => {
-                        const payload = JSON.stringify({
-                            action: "NUEVO_TURNO",
-                            id_venta: id_ventaFinal,
-                            turn_code:turn_code,
-                            id_turn:id_turn,
-
-                        });
-            
-                        console.log("📡 Enviando mensaje WebSocket:", payload);
-            
-                        ws.send(payload);
-                        // ws.close(); // Cerrar conexión después de enviar el mensaje
-                    });
-            
-                    ws.on("error", (err) => {
-                        console.error("❌ Error en WebSocket:", err.message);
-                    });
-            
-                } catch (err) {
-                    console.error("❌ Error en WebSocket:", err.message);
-                }
+                await  enviarMensajeWebSocket({
+                    action: "NUEVO_TURNO",
+                    id_venta: id_ventaFinal,
+                    turn_code: turn_code,
+                    id_turn: id_turn,
+                    pantalla_view: "true"
+                });
             }
 
             res.status(200).json({ success: true,resultado });

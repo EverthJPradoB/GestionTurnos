@@ -1,8 +1,8 @@
 const Usuario = require('../models/Usuario');
-
-
 const { pool } = require('../config/conexion');
 
+
+const  { setupWebSocket, clients ,enviarMensajeWebSocket}  = require("../config/websocket"); 
 
 class UsuarioController {
 
@@ -20,8 +20,6 @@ class UsuarioController {
         try {
             const result = await Usuario.login(username, password);
 
-            console.log("hola: " + result);
-            
             if (result && result.length > 0) {
                 const user = result[0];
 
@@ -33,16 +31,20 @@ class UsuarioController {
                 req.session.per_ape_ma = user.per_ape_ma;
                 req.session.id_rol = user.id_rol;
                 req.session.id_venta = user.id_venta;
-                
+
+
+
+
                 // Determinar la URL de redirección
                 let redirectUrl = "/";
+
                 if (user.id_rol == 2) {
                     redirectUrl = "/Recpcionista/UsuHome";
                 }
                 else if (user.id_rol == 3) {
                     redirectUrl = "/Encargado/UsuHome";
                 } else if (user.id_rol == 4) {
-                    redirectUrl = "/Admin/UsuHomeAministrador";
+                    redirectUrl = "/Admin/UsuHome";
                 }
 
                 return res.json({ success: true, redirectUrl });
@@ -55,7 +57,6 @@ class UsuarioController {
                 });
             }
         } catch (error) {
-            console.error(error);
             return res.json({
                 success: false,
                 mensaje: "Error en el servidor. Intente más tarde.",
@@ -71,16 +72,17 @@ class UsuarioController {
 
             const personasModificadas = personas.map(row => ({
                 ...row, // Mantiene los datos originales
-                venta_nom: row.venta_nom ? row.venta_nom : "<b>No Aplica</b>",
+                venta_nom: row.venta_nom ? row.venta_nom : "<b>-</b>",
                 editar: `<button type="button" onClick="editar(${row.id_per});" id="${row.id_per}" class="btn btn-outline-warning btn-icon"><div><i class="fa fa-edit"></i></div></button>`,
                 eliminar: `<button type="button" onClick="eliminar(${row.id_per});" id="${row.id_per}" class="btn btn-outline-danger btn-icon"><div><i class="fa fa-close"></i></div></button>`,
-                desvincular: `<button type="button" onClick="editar(${row.id_per});" id="${row.id_per}" class="btn btn-outline-warning btn-icon"><div><i class="fa fa-edit"></i></div></button>`,
+                desvincular: row.id_rol == 3 ? "<b>-</b>" : `<button type="button" onClick="desvincular(${row.id_per});" id="${row.id_per}" class="btn btn-outline-secondary btn-icon"><div><i class="fa fa-unlink"></i></div></button>`,
             }));
 
 
             res.status(200).json({ data: personasModificadas });
         } catch (error) {
-            console.error("Error al obtener personas:", error);
+
+
             res.status(500).json({ message: "Error interno del servidor" });
         }
     }
@@ -109,9 +111,9 @@ class UsuarioController {
             return res.status(400).json({ status: "error", message: "Complete los campos obligatorios" });
         }
 
-
         // Validación de correo electrónico
-        if (per_correoFinal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(per_correoFinal)) {
+        if (per_correoFinal && !/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/i.test(per_correoFinal)) {
+
             return res.status(400).json({ status: "error", message: "Ingrese un correo electrónico válido" });
         }
 
@@ -120,6 +122,8 @@ class UsuarioController {
         if (id_perFinal) {
 
             try {
+
+
 
                 connection = await pool.getConnection(); // Obtener conexión del pool
 
@@ -131,29 +135,39 @@ class UsuarioController {
                 await Usuario.update_persona(
                     id_perFinal, per_nomFinal, per_ape_paFinal, per_ape_maFinal, per_correoFinal, per_telefFinal);
 
-                let cantidad_ventanilla = await Usuario.verificar_tramite_ventanilla(id_perFinal);
+                let verificar = await Usuario.verificar_tramite_ventanilla(id_perFinal);
 
-                if (cantidad_ventanilla) {
+                let cantidad_ventanilla = verificar.count;
+                let id_venta_actual = verificar.id_venta;
 
-                    console.log(1);
-                    await Usuario.update_tramite(id_ventaFinal, id_perFinal);
+
+                if (cantidad_ventanilla || cantidad_ventanilla > 0) {
+
+
+                    if (id_venta_actual != id_ventaFinal) {
+
+                        await Usuario.desvincular_ventanilla(id_perFinal);
+
+                        await Usuario.asociar_ventanilla(id_perFinal, id_ventaFinal);
+                    }
 
                 } else {
 
-                    if (id_rolFinal !== 3 && id_venta) {
-                        await Usuario.asociar_ventanilla(id_ventaFinal, id_perFinal);
+                    if (id_rolFinal != 3 && id_venta) {
+
+                        await Usuario.asociar_ventanilla(id_perFinal, id_ventaFinal);
                     }
 
                 }
 
-                console.log("Persona Actualizada exitosamente:");
+
 
                 await connection.query('COMMIT'); // Confirmar transacción
                 res.status(200).json({ success: true, message: 'Persona Modificada exitosamente' });
 
             } catch (error) {
                 await connection.query('ROLLBACK'); // Deshacer cambios si hay error
-                console.error("Error en actualizar:", error);
+
                 res.status(500).json({ success: false, message: 'Error al modificar persona' });
             }
 
@@ -179,14 +193,15 @@ class UsuarioController {
                     await Usuario.asociar_ventanilla(id_per, id_venta);
                 }
 
-                console.log("Persona registrada exitosamente:");
+
 
                 await connection.query('COMMIT'); // Confirmar transacción
                 res.status(200).json({ success: true, message: 'Persona registrada exitosamente' });
 
             } catch (error) {
                 await connection.query('ROLLBACK'); // Deshacer cambios si hay error
-                console.error("Error en insertPersonas:", error);
+
+
                 res.status(500).json({ success: false, message: 'Error al registrar persona' });
             }
 
@@ -242,7 +257,6 @@ class UsuarioController {
 
             res.send(html);
         } catch (error) {
-            console.error("Error en combo_ventanillas:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -269,7 +283,6 @@ class UsuarioController {
             }
             res.send(html);
         } catch (error) {
-            console.error("Error en combo_ventanillas:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -285,7 +298,6 @@ class UsuarioController {
             res.status(200).json(persona_econtrada);
 
         } catch (error) {
-            console.error("Error al obtener persona:", error);
             res.status(500).json({ message: "Error interno del servidor" });
         }
 
@@ -298,34 +310,95 @@ class UsuarioController {
             const id_per = req.body.id_per;
             await Usuario.delete_usuario_x_id(id_per);
 
-            res.status(200).json({ success: true, message: 'La Persona a sido desabilitado' });
+            res.status(200).json({ success: true, message: 'La Persona a sido eliminada' });
 
         } catch (error) {
-            console.error("Error inactivar Persona o Ventanilla_Persona:", error);
             res.status(500).json({ message: "Error interno del servidor" });
         }
 
     }
 
+
+    static async desvincular_vetanilla_usuario(req, res) {
+
+        try {
+            const { id_per } = req.body; // Extraer directamente con destructuring
+            await Usuario.desvincular_ventanilla(id_per);
+         
+           // Buscar la conexión del recepcionista
+           let clientWsToClose = null;
+           for (const [ws, clientData] of clients) {
+               if (clientData.id_per == id_per) {
+                   clientWsToClose = ws;
+                   console.log("Cliente encontrado para id_per:", id_per);
+                   break;
+               }
+           }
+
+           
+            if (clientWsToClose) {
+                
+                clientWsToClose.send(JSON.stringify({ action: "EXPULSADO"}));
+                console.log("Mensaje EXPULSADO enviado a id_per:", id_per);
+                clientWsToClose.close();
+                clients.delete(clientWsToClose); // Eliminar del Map
+
+                // Calcular y notificar cantidades actualizadas
+    
+                const usuariosConectados = [...clients.values()].filter(client => client.id_per != null).length;
+
+                clients.forEach((client) => {
+                    if (client.id_rol == 4) {
+                        client.ws.send(
+                            JSON.stringify({
+                                action: "PERSONAL_DESCONECTADO",
+                                cantidad: usuariosConectados
+                            })
+                        );
+                    }
+                });
+
+
+            }
+    
+            res.status(200).json({ success: true, message: "La ventanilla ha sido desvinculada" });
+    
+        } catch (error) {
+            console.error("❌ Error en desvincular_vetanilla_usuario:", error);
+            res.status(500).json({ success: false, message: "Error interno del servidor" });
+        }
+
+    }
+    
+
     static obtener_ventanilla(req, res) {
-        if (!req.session.id_venta || !req.session.id_per ) {
+        if (!req.session.id_venta || !req.session.id_per) {
             return res.status(401).json({ error: "No autorizado" }); // Código 401 (Unauthorized)
         }
 
-        res.json({ id_venta: req.session.id_venta , id_per: req.session.id_per});
+        res.json({ id_venta: req.session.id_venta, id_per: req.session.id_per });
     }
 
     static obtener_rol(req, res) {
-        if ( !req.session.id_rol) {
+        if (!req.session.id_rol || !req.session.id_per) {
             return res.status(401).json({ error: "No autorizado" }); // Código 401 (Unauthorized)
         }
 
-        res.json({ id_rol: req.session.id_rol});
+        res.json({ id_rol: req.session.id_rol , id_per: req.session.id_per });
     }
 
 
 
     static logout(req, res) {
+        const id_per = req.session?.id_per; // Evitar error si req.session no tiene id_pe
+        
+        if (id_per && clients[id_per]) {
+            console.log(`🚨 Expulsando usuario ${id_per}`);
+            clients[id_per].send(JSON.stringify({ action: "EXPULSADO" , cantidad: 1}));
+            clients[id_per].close();
+            delete clients[id_per]; // Eliminar del registro
+        }
+    
         req.session.destroy((err) => {
             if (err) {
                 return res.status(500).send('Error al cerrar sesión');
@@ -333,21 +406,19 @@ class UsuarioController {
             res.redirect('/');
         });
     }
-
-
-
     
+
+
     static async perfil(req, res) {
 
         try {
-            let perfil = await Usuario.get_perfil_x_id( req.session.id_per);
+            let perfil = await Usuario.get_perfil_x_id(req.session.id_per);
             // id_venta_actual = id_venta_actual ?? null; // Si es undefined, lo convertimos en null
 
-            console.log(perfil);
-            
+
 
             let correo = perfil?.per_correo ?? "";  // Usa Nullish Coalescing (??) en lugar de OR (||)
-            let telefono = perfil?.per_telef ?? ""; 
+            let telefono = perfil?.per_telef ?? "";
 
             let html = `  
             <input type="hidden" name="id_usuario" value="${perfil.id_per}" required>
@@ -387,11 +458,10 @@ class UsuarioController {
                 <button type="submit" class="btn btn-primary me-2">Guardar Cambios</button>
             </div>
         `;
-        
+
 
             res.send(html);
         } catch (error) {
-            console.error("Error en combo_ventanillas:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -420,13 +490,12 @@ class UsuarioController {
 
         try {
 
-
-             await Usuario.update_perfil(per_nomFinal, per_ape_paFinal, per_ape_maFinal, per_correoFinal, per_telefFinal,  req.session.id_per);
+            await Usuario.update_perfil(per_nomFinal, per_ape_paFinal, per_ape_maFinal, per_correoFinal, per_telefFinal, req.session.id_per);
             // id_venta_actual = id_venta_actual ?? null; // Si es undefined, lo convertimos en null
             res.status(200).json({ success: true, message: 'Datos Modificada exitosamente' });
 
         } catch (error) {
-            console.error("Error en combo_ventanillas:", error);
+
             res.status(500).send("Error interno del servidor");
         }
     }

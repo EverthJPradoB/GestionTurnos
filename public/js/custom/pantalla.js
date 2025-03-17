@@ -9,8 +9,9 @@ ws.onopen = () => {
     console.log("Conectado al WebSocket");
 
     /// ws.send(JSON.stringify({ action: "LISTA_TURNOS", id_venta: 44 }));
-
+    ws.send(JSON.stringify({ action: "REGISTRAR", tipo: "pantalla_ciudadano" })); 
     ws.send(JSON.stringify({ action: "LISTAR_PANTALLA_GENERAL", pantalla_view: true }));
+    
 };
 
 ws.onmessage = (event) => {
@@ -23,10 +24,7 @@ ws.onmessage = (event) => {
 
         case "LISTAR_PANTALLA_GENERAL":
 
-
-
             let turnos_generales = data.pantalla_general;
-
 
             // Obtener los id_venta únicos
             // Obtener los id_venta únicos
@@ -38,9 +36,8 @@ ws.onmessage = (event) => {
                 return acc;
             }, []);
 
-
-
             $("#contenedor-ventanillas").empty(); // Vaciar el contenedor una sola vez
+
             ventasUnicas.forEach(venta => {
                 crearVentanillasGeneral(venta, turnos_generales);
             });
@@ -52,10 +49,7 @@ ws.onmessage = (event) => {
 
             let turnos = data.turnos_ventanilla_pantalla;
 
-            console.log(turnos);
-
             let id_venta = data.id_venta;
-
 
             crearVentanilla_x_id_venta(turnos, id_venta)
 
@@ -66,15 +60,11 @@ ws.onmessage = (event) => {
 
         case "LIMPIAR_EN_ATENCION":
 
-        console.log(data.turno_id);
         
-
             removerTurno(data.turno_id)
-
           
         case "LLAMAR_TURNO":
-            console.log(data.turno_id);
-
+   
 
             resaltarTurno(data.turno_id);
 
@@ -105,7 +95,7 @@ function crearVentanillasGeneral(venta, turnos) {
     turnos.forEach(t => {
         if (t.id_venta === idVentanilla) { // Filtramos solo los turnos del idVentaActual
             if (t.id_est_turn == 2) {
-                console.log(t.id_turn);
+        
 
                 // Si el turno está en atención, lo mostramos en el contenedor principal
                 html += `      <div id="turno-v-${t.id_turn}">
@@ -401,9 +391,6 @@ function mostrarTurnos(turnos, turno_id_actual) {
     // Solo mostramos los primeros 3 turnos en espera
     turnos_en_espera = turnos_en_espera.slice(0, 3);
 
-    console.log(turnos_en_espera[0]);
-
-
     let turno_v1_siguiente_1 = $("#turno_v1_siguiente_1");
     let turno_v1_siguiente_2 = $("#turno_v1_siguiente_2");
     let turno_v1_siguiente_3 = $("#turno_v1_siguiente_3");
@@ -468,7 +455,6 @@ function actualizarEstadoTurno(turno) {
 function resaltarTurno(turnoId) {
     const turno = document.getElementById(`turno-v-${turnoId}`);
 
-    console.log(turnoId);
 
     if (turno) {
         turno.classList.add("llamado");

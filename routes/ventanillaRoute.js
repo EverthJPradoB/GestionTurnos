@@ -5,7 +5,6 @@ const router = express.Router();
 const { VentanillaController } = require('../controllers/ventanillaController'); // Asegúrate de que el nombre coincide
 const upload = multer(); // Sin almacenamiento en disco, solo procesa los datos en memoria
 
-// Ruta para obtener las ventanillas activas
 router.post('/listar_ventanilla_activas', VentanillaController.get_ventanilla_mnt);
 
 router.post('/combo_tramites',upload.none(), VentanillaController.combo_tramites);
@@ -16,6 +15,7 @@ router.post('/registrarVentanillas', upload.none(), VentanillaController.guardar
 
 router.post('/eliminarVentanilla', upload.none(), VentanillaController.eliminar_ventanilla);
 
+router.post('/desvincularTramite', upload.none(), VentanillaController.desvincular_tramite_vetanilla);
 
 
 module.exports = router;

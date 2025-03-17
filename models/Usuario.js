@@ -1,46 +1,41 @@
 const { query } = require('../config/conexion');
 const bcrypt = require('bcrypt');
-const saltRounds = 10; 
+const saltRounds = 10;
 
 class Usuario {
 
     static async login(username, password) {
         const sql = `
-            SELECT p.id_per, p.per_nom, p.per_ape_pa, p.per_ape_ma, p.id_rol, v.id_venta, id_cred, c.password_
-            FROM tm_persona AS p
-            INNER JOIN tm_credencial AS c ON c.id_per = p.id_per
-            LEFT JOIN tm_persona_ventanilla AS pv ON pv.id_per = p.id_per
-            LEFT JOIN tm_ventanilla AS v ON pv.id_venta = v.id_venta
-            LEFT JOIN tm_rol AS r ON r.id_rol = p.id_rol
-            WHERE p.per_estado = 1
-            AND c.username_ = ?
-            AND ((v.venta_estado = 1 AND pv.per_venta_estado = 1) OR v.venta_estado IS NULL)
+        SELECT p.id_per, p.per_nom, p.per_ape_pa, p.per_ape_ma, p.id_rol, v.id_venta, id_cred, c.password_
+        FROM tm_persona AS p
+        INNER JOIN tm_credencial AS c ON c.id_per = p.id_per
+        LEFT JOIN tm_persona_ventanilla AS pv ON pv.id_per = p.id_per  AND pv.per_venta_estado = 1
+        LEFT JOIN tm_ventanilla AS v ON pv.id_venta = v.id_venta AND v.venta_estado = 1
+        LEFT JOIN tm_rol AS r ON r.id_rol = p.id_rol
+        WHERE p.per_estado = 1
+        AND c.username_ = ?
+       
         `;
-    
+
         // Obtén los datos del usuario
         const user_validado = await query(sql, [username]);
-    
+
         // Verificar si el usuario existe
         if (user_validado.length === 0) {
             console.log('Usuario no encontrado');
             return null;
         }
 
-        console.log(password);
-        
-        console.log(user_validado[0].password_);
 
         // await Usuario.generarContraseñaSegura();
-        
+
         // Verifica la contraseña
         const match = await bcrypt.compare(password, user_validado[0].password_);
-    
+
         if (!match) {
             console.log('Contraseña incorrecta');
             return null;
         }
-    
-        console.log('Login exitoso:', user_validado);
 
         return user_validado; // Devuelve el usuario si la contraseña es válida
     }
@@ -55,7 +50,8 @@ class Usuario {
                 p.per_ape_ma  AS per_ape_ma,  
                 p.per_correo AS per_correo,  
                 p.per_telef AS per_telef,  
-                r.rol_nom, 
+                r.rol_nom,
+                r.id_rol, 
                 v.venta_nom AS venta_nom
                 FROM tm_persona p
                 INNER JOIN tm_rol r ON r.id_rol = p.id_rol
@@ -69,7 +65,6 @@ class Usuario {
         const personas_disponibles_mnt = await query(sql);
 
 
-        console.log("personas_disponibles_mnt  model: " + personas_disponibles_mnt);
 
 
         return personas_disponibles_mnt;
@@ -87,7 +82,7 @@ class Usuario {
 
 
     static async asociar_ventanilla(id_venta, id_per) {
-        const sql = "INSERT INTO `bd_gestion_turnos`.`tm_persona_ventanilla` (id_venta, id_per) VALUES (?, ?)";
+        const sql = "INSERT INTO bd_gestion_turnos.tm_persona_ventanilla (id_venta, id_per) VALUES (?, ?)";
         const params = [id_venta, id_per];
         await query(sql, params);
     }
@@ -169,24 +164,24 @@ class Usuario {
 
     static async insertCredenciales(id_per, per_nom, per_ape_pa, per_ape_ma) {
         const username_ = Usuario.generarCredenciales(per_nom, per_ape_pa, per_ape_ma);
-    
+
         // Generar una contraseña aleatoria segura
         const password_ = username_;
-    
+
         // Hacer hash de la contraseña antes de guardarla en la base de datos
         const hashedPassword = await bcrypt.hash(password_, saltRounds);
 
- 
-    
+
+
         const sql = "INSERT INTO `bd_gestion_turnos`.`tm_credencial` (username_, password_, id_per) VALUES (?, ?, ?)";
         const params = [username_, hashedPassword, id_per];
         await query(sql, params);
     }
 
-    
+
     static async generarContraseñaSegura() {
         const hashedPassword = await bcrypt.hash("admin", saltRounds);
-        console.log("admin: "+hashedPassword);
+        console.log("admin: " + hashedPassword);
     }
 
 
@@ -242,13 +237,13 @@ class Usuario {
 
     static async verificar_tramite_ventanilla(id_per) {
         const sqlCheck = `
-            SELECT COUNT(*) AS count
+            SELECT COUNT(*) AS count , id_venta
             FROM bd_gestion_turnos.tm_persona_ventanilla
             WHERE id_per = ? AND per_venta_estado = 1`;
 
 
         const verificar = await query(sqlCheck, [id_per]);
-        return verificar.length > 0 ? verificar[0].count : null;
+        return verificar.length > 0 ? verificar[0] : null;
 
         // Retorna true si existe un trámite asignado
     }
@@ -310,6 +305,19 @@ class Usuario {
         await query(sql1, [id_per]);
 
     }
+
+
+
+    static async desvincular_ventanilla(id_per) {
+
+        // inactivamos  la ventanilla unida a un tramite
+        const sql1 = `
+          UPDATE bd_gestion_turnos.tm_persona_ventanilla SET per_venta_estado = 0 WHERE id_per = ?
+            `;
+        await query(sql1, [id_per]);
+
+    }
+
 
 
     static async get_perfil_x_id(id_per) {

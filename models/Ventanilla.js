@@ -88,7 +88,11 @@ class Ventanilla {
 
     static async get_ventanilla_x_id(id_venta) {
         const sql = `
-         SELECT  *
+         SELECT  
+               v.id_venta , 
+               v.venta_nom , 
+               v.venta_descrip 
+
                 FROM tm_ventanilla v
                 LEFT JOIN tm_tramite_ventanilla vt ON v.id_venta = vt.id_venta and vt.tra_venta_estado = 1
                 LEFT JOIN tm_tramite t ON vt.id_tra = t.id_tra AND  t.tra_estado =1
@@ -114,12 +118,12 @@ class Ventanilla {
 
     static async verificar_tramite_ventanilla(id_venta) {
         const sqlCheck = `
-        SELECT COUNT(*) as count  FROM bd_gestion_turnos.tm_tramite_ventanilla
+      SELECT COUNT(*) as count , id_tra FROM bd_gestion_turnos.tm_tramite_ventanilla
                               WHERE id_venta = ? and tra_venta_estado = 1`;
 
 
         const verificar = await query(sqlCheck, [id_venta]);
-        return verificar.length > 0 ? verificar[0].count : null;
+        return verificar.length > 0 ? verificar[0] : null;
     }
 
     static async update_tramite( id_tra ,id_venta) {
@@ -165,6 +169,18 @@ class Ventanilla {
                 WHERE id_venta = ?
         `;
             await query(sql2, [id_venta]);
+
+    }
+
+
+    
+    static async desvincular_tramite(id_venta) {
+
+        // inactivamos  la ventanilla unida a un tramite
+        const sql1 = `
+          UPDATE bd_gestion_turnos.tm_tramite_ventanilla SET tra_venta_estado = 0 WHERE id_venta = ?
+            `;
+        await query(sql1, [id_venta]);
 
     }
 

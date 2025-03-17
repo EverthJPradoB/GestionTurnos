@@ -25,6 +25,8 @@ router.post('/combo_ventanillas',upload.none(), UsuarioController.combo_ventanil
 
 router.post('/eliminarPersona',upload.none(), UsuarioController.eliminar_usuario);
 
+router.post('/eliminarVentanilla',upload.none(), UsuarioController.desvincular_vetanilla_usuario);
+
 
 router.get('/logout',upload.none(), UsuarioController.logout);
 
